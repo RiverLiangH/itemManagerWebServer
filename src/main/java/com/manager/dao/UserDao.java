@@ -6,6 +6,12 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import com.manager.model.User;
 import com.manager.dao.DatabaseConnection;
+import java.util.ArrayList;
+import java.util.List;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 public class UserDao {
 
@@ -105,4 +111,47 @@ public class UserDao {
             throw new SQLException("Failed to retrieve user by name", e);
         }
     }
+
+    
+    public List<User> getAllUsers() throws SQLException {
+        List<User> users = new ArrayList<>();
+        Connection conn = DatabaseConnection.getConnection();
+        String query = "SELECT * FROM user";
+    
+        try (PreparedStatement stmt = conn.prepareStatement(query)) {
+            ResultSet rs = stmt.executeQuery();
+    
+            while (rs.next()) {
+                User user = new User();
+                user.setId(rs.getInt("id"));
+                user.setName(rs.getString("name"));
+                user.setPhone(rs.getString("phone"));
+                user.setEmail(rs.getString("email"));
+                user.setPassword(rs.getString("password"));
+                user.setAdmin(rs.getBoolean("admin"));
+    
+                users.add(user);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new SQLException("Error fetching all users", e);
+        }
+    
+        return users;
+    }
+
+
+    public void deleteUser(int userId) throws SQLException {
+        Connection conn = DatabaseConnection.getConnection();
+        String query = "DELETE FROM user WHERE id = ?";
+    
+        try (PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, userId);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new SQLException("Error deleting user with ID: " + userId, e);
+        }
+    }
+    
 }
