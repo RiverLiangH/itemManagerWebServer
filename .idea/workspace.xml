@@ -5,13 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="97d09836-c0b0-44b5-adb3-518a21fce4c5" name="更改" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/manager/controller/ItemServlet.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/manager/dao/ItemDao.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/manager/model/Item.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/manager/model/Item.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/manager/servlet/UserServlet.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/manager/controller/UserServlet.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/webapp/WEB-INF/web.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/webapp/WEB-INF/web.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/manager/controller/ItemServlet.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/manager/controller/ItemServlet.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/manager/dao/ItemDao.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/manager/dao/ItemDao.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -44,7 +40,7 @@
   "keyToString": {
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "dev__lh",
+    "git-widget-placeholder": "master",
     "last_opened_file_path": "C:/Users/13067/River/appData/apache-tomcat-10.1.29-windows-x64/apache-tomcat-10.1.29/lib/servlet-api.jar",
     "project.structure.last.edited": "Libraries",
     "project.structure.proportion": "0.16601562",

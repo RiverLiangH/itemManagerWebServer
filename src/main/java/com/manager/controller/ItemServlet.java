@@ -27,6 +27,7 @@ public class ItemServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        System.out.println("Received POST request");
         try {
             // Set return type JSON
             resp.setContentType("application/json");
@@ -91,7 +92,7 @@ public class ItemServlet extends HttpServlet {
             }
 
             // Output JSON response
-            resp.getWriter().write(jsonResponse);
+            // resp.getWriter().write(jsonResponse);
         } catch (SQLException e) {
             e.printStackTrace(); // Print stack trace to logs
             resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database error: " + e.getMessage());
@@ -103,12 +104,13 @@ public class ItemServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        System.out.println("Received GET request");
         try {
             String path = req.getPathInfo();
             resp.setContentType("application/json");
             resp.setCharacterEncoding("UTF-8");
 
-            if ("/all".equals(path)) {
+            if ("/info".equals(path)) {
                 System.out.println("Fetching items from the database...");
                 JSONArray itemsArray = itemDao.getAllItems(); // 调用查询所有物品的方法
 

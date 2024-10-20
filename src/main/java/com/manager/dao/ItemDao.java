@@ -48,11 +48,15 @@ public class ItemDao {
 
             int rowsAffected = stmt.executeUpdate();  // 执行删除操作
             if (rowsAffected == 0) {
-                throw new SQLException("No item found with the specified ID");
+                throw new SQLException("No item found with the specified ID: " + itemId);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
-            throw new SQLException("Failed to delete item", e);
+            if (e.getMessage().contains("No item found with the specified ID")) {
+                throw e;  // 直接抛出该错误，保留原错误信息
+            } else {
+                e.printStackTrace();
+                throw new SQLException("Failed to delete item with ID: " + itemId, e);
+            }
         }
     }
 
