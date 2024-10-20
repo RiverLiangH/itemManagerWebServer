@@ -4,21 +4,21 @@ public class Item {
     private int id;
     private String name;
     private String type;
-    private int totalCount;
-    private int currentStock;
-    private int condition;
+    // private int totalCount;
+    // private int currentStock;
+    private int current_condition;
     private int location;
 
     // 构造函数
     public Item() {}
 
-    public Item(int id, String name, String type, int totalCount, int currentStock, int condition, int location) {
+    public Item(int id, String name, String type, int current_condition, int location) {
         this.id = id;
         this.name = name;
         this.type = type;
-        this.totalCount = totalCount;
-        this.currentStock = currentStock;
-        this.condition = condition;
+        // this.totalCount = totalCount;
+        // this.currentStock = currentStock;
+        this.current_condition = current_condition;
         this.location = location;
     }
 
@@ -47,28 +47,28 @@ public class Item {
         this.type = type;
     }
 
-    public int getTotalCount() {
-        return totalCount;
-    }
-
-    public void setTotalCount(int totalCount) {
-        this.totalCount = totalCount;
-    }
-
-    public int getCurrentStock() {
-        return currentStock;
-    }
-
-    public void setCurrentStock(int currentStock) {
-        this.currentStock = currentStock;
-    }
+//    public int getTotalCount() {
+//        return totalCount;
+//    }
+//
+//    public void setTotalCount(int totalCount) {
+//        this.totalCount = totalCount;
+//    }
+//
+//    public int getCurrentStock() {
+//        return currentStock;
+//    }
+//
+//    public void setCurrentStock(int currentStock) {
+//        this.currentStock = currentStock;
+//    }
 
     public int getCondition() {
-        return condition;
+        return current_condition;
     }
 
     public void setCondition(int condition) {
-        this.condition = condition;
+        this.current_condition = condition;
     }
 
     public int getLocation() {

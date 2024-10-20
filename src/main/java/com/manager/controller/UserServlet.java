@@ -1,4 +1,4 @@
-package com.manager.servlet;
+package com.manager.controller;
 
 import com.manager.dao.UserDao;
 import com.manager.model.User;
