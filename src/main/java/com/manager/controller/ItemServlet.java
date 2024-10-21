@@ -1,5 +1,6 @@
 package com.manager.controller;
 
+import com.manager.utility.JwtUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -25,80 +26,79 @@ public class ItemServlet extends HttpServlet {
         itemDao = new ItemDao(); // Make sure to init itemDao HERE
     }
 
+    // Manager: add item/delete item
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         System.out.println("Received POST request");
-        try {
-            // Set return type JSON
-            resp.setContentType("application/json");
-            resp.setCharacterEncoding("UTF-8");
+        String token = req.getHeader("Authorization");
+        String jsonResponse = "{\"message\": \"Hello, World!\"}";
 
-            // Construct JSON response
-            String path = req.getPathInfo();
-            String jsonResponse = "{\"message\": \"Hello, World!\"}";
+        if (token != null && token.startsWith("Bearer ")) {
+            token = token.substring(7); // 去掉 "Bearer " 前缀
+            String userIdStr = JwtUtil.validateToken(token);
 
-            if ("/add".equals(path)) {
-                // resp.getWriter().write("Fetching user...");
-                // Read input data from request body
-                BufferedReader reader = req.getReader();
-                StringBuilder jsonInput = new StringBuilder();
-                String line;
+            if (userIdStr != null) {
+                resp.setContentType("application/json");
+                resp.setCharacterEncoding("UTF-8");
+                try {
+                    String path = req.getPathInfo();
+                    System.out.println("Request URI: " + path);
+                    BufferedReader reader = req.getReader();
+                    StringBuilder jsonInput = new StringBuilder();
+                    String line;
 
-                while ((line = reader.readLine()) != null) {
-                    jsonInput.append(line);
+                    while ((line = reader.readLine()) != null) {
+                        jsonInput.append(line);
+                    }
+
+                    if ("/add".equals(path)) {
+                        System.out.println("Received POST request: add an item");
+                        String requestData = jsonInput.toString();
+                        JSONObject jsonObject = new JSONObject(requestData); // Use any JSON parsing library here
+                        String name = jsonObject.getString("name");
+                        String type = jsonObject.getString("type");
+                        int location = jsonObject.getInt("location");
+
+                        // Create an Item object
+                        Item item = new Item();
+                        item.setName(name);
+                        item.setType(type);
+                        item.setLocation(location);
+
+                        // Insert the item into the database
+                        itemDao.insertItem(item);
+
+                        // Set success response message
+                        jsonResponse = "{\"message\": \"Item added successfully\"}";
+                        resp.getWriter().write(jsonResponse);
+                    } else if ("/delete".equals(path)) {
+                        System.out.println("Received JSON: " + jsonInput.toString());
+
+                        JSONObject jsonObject = new JSONObject(jsonInput.toString());
+                        int itemId = jsonObject.getInt("id"); // 获取要删除的 itemId
+
+                        itemDao.deleteItem(itemId);
+
+                        // 设置成功响应消息
+                        jsonResponse = "{\"message\": \"Item deleted successfully\"}";
+                        resp.getWriter().write(jsonResponse);
+                    } else {
+                        resp.sendError(HttpServletResponse.SC_NOT_FOUND);
+                    }
+                } catch (SQLException e) {
+                    e.printStackTrace(); // Print stack trace to logs
+                    resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database error: " + e.getMessage());
+                } catch (Exception e) {
+                    e.printStackTrace(); // Print stack trace to logs
+                    resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "An error occurred.");
                 }
-
-                // Parse JSON input into an Item object
-                String requestData = jsonInput.toString();
-                JSONObject jsonObject = new JSONObject(requestData); // Use any JSON parsing library here
-                String name = jsonObject.getString("name");
-                String type = jsonObject.getString("type");
-                int location = jsonObject.getInt("location");
-
-                // Create an Item object
-                Item item = new Item();
-                item.setName(name);
-                item.setType(type);
-                item.setLocation(location);
-
-                // Insert the item into the database
-                itemDao.insertItem(item);
-
-                // Set success response message
-                jsonResponse = "{\"message\": \"Item added successfully\"}";
-                resp.getWriter().write(jsonResponse);
-            } else if ("/delete".equals(path)) {
-                // resp.getWriter().write("Fetching product...");
-                BufferedReader reader = req.getReader();
-                StringBuilder jsonInput = new StringBuilder();
-                String line;
-
-                while ((line = reader.readLine()) != null) {
-                    jsonInput.append(line);
-                }
-
-                System.out.println("Received JSON: " + jsonInput.toString());
-
-                JSONObject jsonObject = new JSONObject(jsonInput.toString());
-                int itemId = jsonObject.getInt("id"); // 获取要删除的 itemId
-
-                itemDao.deleteItem(itemId);
-
-                // 设置成功响应消息
-                jsonResponse = "{\"message\": \"Item deleted successfully\"}";
-                resp.getWriter().write(jsonResponse);
             } else {
-                resp.sendError(HttpServletResponse.SC_NOT_FOUND);
+                // 验证失败，返回 401
+                resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                resp.getWriter().write("Unauthorized");
             }
-
-            // Output JSON response
-            // resp.getWriter().write(jsonResponse);
-        } catch (SQLException e) {
-            e.printStackTrace(); // Print stack trace to logs
-            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database error: " + e.getMessage());
-        } catch (Exception e) {
-            e.printStackTrace(); // Print stack trace to logs
-            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "An error occurred.");
+        } else {
+            resp.sendError(HttpServletResponse.SC_NOT_FOUND);
         }
     }
 

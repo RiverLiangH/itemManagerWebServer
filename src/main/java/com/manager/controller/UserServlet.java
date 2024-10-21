@@ -156,8 +156,6 @@ public class UserServlet extends HttpServlet {
                 response.sendError(HttpServletResponse.SC_NOT_FOUND);
             }
 
-
-
         } catch (SQLException e) {
             logger.error("Error creating user", e);
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
