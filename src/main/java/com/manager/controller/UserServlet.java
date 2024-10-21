@@ -113,7 +113,8 @@ public class UserServlet extends HttpServlet {
 
             // 创建用户对象并插入数据库（ID 由数据库自动生成）
             User user = new User(0, name, phone, email, password, admin);
-            userDao.insertUser(user);;  // 获取生成的自增 ID
+            userDao.insertUser(user);
+            ;  // 获取生成的自增 ID
             logger.info("User created successfully: {}", name);
 
             // 返回创建成功的用户信息以及生成的 user_id
@@ -130,64 +131,64 @@ public class UserServlet extends HttpServlet {
         }
     }
 
-// 处理 PUT 请求：更新用户
-@Override
-protected void doPut(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    response.setContentType("application/json");
-    PrintWriter out = response.getWriter();
+    // 处理 PUT 请求：更新用户
+    @Override
+    protected void doPut(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        response.setContentType("application/json");
+        PrintWriter out = response.getWriter();
 
-    // 读取请求体中的 JSON 数据
-    StringBuilder sb = new StringBuilder();
-    BufferedReader reader = request.getReader();
-    String line;
-    while ((line = reader.readLine()) != null) {
-        sb.append(line);
-    }
-
-    try {
-        // 将请求体转换为 JSON 对象
-        String requestBody = sb.toString();
-        JSONObject jsonObject = new JSONObject(requestBody);
-
-        int userId = jsonObject.optInt("user_id");
-        String name = jsonObject.optString("user_name");
-        String phone = jsonObject.optString("user_phone");
-        String email = jsonObject.optString("user_email");
-        String password = jsonObject.optString("user_password");
-        boolean admin = jsonObject.optBoolean("admin");
-
-        if (userId == 0 || name.isEmpty() || phone.isEmpty() || email.isEmpty()) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            out.println("{\"error\": \"Missing required fields or invalid user_id\"}");
-            return;
+        // 读取请求体中的 JSON 数据
+        StringBuilder sb = new StringBuilder();
+        BufferedReader reader = request.getReader();
+        String line;
+        while ((line = reader.readLine()) != null) {
+            sb.append(line);
         }
 
-        // 更新用户信息
-        User user = new User(userId, name, phone, email, password, admin);
         try {
-            userDao.updateUser(user);
-            logger.info("User updated successfully: {}", name);
+            // 将请求体转换为 JSON 对象
+            String requestBody = sb.toString();
+            JSONObject jsonObject = new JSONObject(requestBody);
 
-            response.setStatus(HttpServletResponse.SC_OK);
-            out.println("{\"success\": true, \"message\": \"User updated successfully\"}");
-        } catch (SQLException e) {
-            logger.error("Error updating user", e);
-            if (e.getMessage().contains("does not exist")) {
-                // 用户不存在的错误
-                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                out.println("{\"error\": \"User not found with ID: " + userId + "\"}");
-            } else {
-                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-                out.println("{\"error\": \"Failed to update user\"}");
+            int userId = jsonObject.optInt("user_id");
+            String name = jsonObject.optString("user_name");
+            String phone = jsonObject.optString("user_phone");
+            String email = jsonObject.optString("user_email");
+            String password = jsonObject.optString("user_password");
+            boolean admin = jsonObject.optBoolean("admin");
+
+            if (userId == 0 || name.isEmpty() || phone.isEmpty() || email.isEmpty()) {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                out.println("{\"error\": \"Missing required fields or invalid user_id\"}");
+                return;
             }
-        }
 
-    } catch (Exception e) {
-        logger.error("Error processing update request", e);
-        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-        out.println("{\"error\": \"Invalid request format\"}");
+            // 更新用户信息
+            User user = new User(userId, name, phone, email, password, admin);
+            try {
+                userDao.updateUser(user);
+                logger.info("User updated successfully: {}", name);
+
+                response.setStatus(HttpServletResponse.SC_OK);
+                out.println("{\"success\": true, \"message\": \"User updated successfully\"}");
+            } catch (SQLException e) {
+                logger.error("Error updating user", e);
+                if (e.getMessage().contains("does not exist")) {
+                    // 用户不存在的错误
+                    response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                    out.println("{\"error\": \"User not found with ID: " + userId + "\"}");
+                } else {
+                    response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                    out.println("{\"error\": \"Failed to update user\"}");
+                }
+            }
+
+        } catch (Exception e) {
+            logger.error("Error processing update request", e);
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            out.println("{\"error\": \"Invalid request format\"}");
+        }
     }
-}
 
 
     // 处理 DELETE 请求：删除用户
@@ -213,5 +214,6 @@ protected void doPut(HttpServletRequest request, HttpServletResponse response) t
             out.println("Error deleting user");
         }
     }
+}
 
 
