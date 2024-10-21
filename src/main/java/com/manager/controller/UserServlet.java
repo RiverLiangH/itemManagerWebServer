@@ -3,7 +3,10 @@ package com.manager.controller;
 import com.manager.dao.UserDao;
 import com.manager.model.User;
 import java.sql.SQLException;  // 导入 SQLException
+
+import com.manager.utility.JwtUtil;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -13,6 +16,7 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@WebServlet("/api/users/*")
 public class UserServlet extends HttpServlet {
     private static final Logger logger = LoggerFactory.getLogger(UserServlet.class);
     private UserDao userDao = new UserDao();
@@ -83,10 +87,13 @@ public class UserServlet extends HttpServlet {
     // 处理 POST 请求：创建新用户
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        System.out.println("Received POST request");
         response.setContentType("application/json");
+        String path = request.getPathInfo();
+
         PrintWriter out = response.getWriter();
 
-        // 读取请求体中的 JSON 数据
+
         StringBuilder sb = new StringBuilder();
         BufferedReader reader = request.getReader();
         String line;
@@ -95,34 +102,61 @@ public class UserServlet extends HttpServlet {
         }
 
         try {
-            // 使用 JSON 库解析请求体中的 JSON 数据
-            String requestBody = sb.toString();
-            JSONObject jsonObject = new JSONObject(requestBody);
+            if ("/create".equals(path)) {
+                // 使用 JSON 库解析请求体中的 JSON 数据
+                String requestBody = sb.toString();
+                JSONObject jsonObject = new JSONObject(requestBody);
 
-            String name = jsonObject.optString("user_name");
-            String phone = jsonObject.optString("user_phone");
-            String email = jsonObject.optString("user_email");
-            String password = jsonObject.optString("user_password");
-            boolean admin = jsonObject.optBoolean("admin");
+                String name = jsonObject.optString("user_name");
+                String phone = jsonObject.optString("user_phone");
+                String email = jsonObject.optString("user_email");
+                String password = jsonObject.optString("user_password");
+                boolean admin = jsonObject.optBoolean("admin");
 
-            if (name.isEmpty() || phone.isEmpty() || email.isEmpty() || password.isEmpty()) {
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                out.println("{\"error\": \"Missing required fields\"}");
-                return;
+                if (name.isEmpty() || phone.isEmpty() || email.isEmpty() || password.isEmpty()) {
+                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    out.println("{\"error\": \"Missing required fields\"}");
+                    return;
+                }
+
+                // 创建用户对象并插入数据库（ID 由数据库自动生成）
+                User user = new User(0, name, phone, email, password, admin);
+                userDao.insertUser(user);
+                ;  // 获取生成的自增 ID
+                logger.info("User created successfully: {}", name);
+
+                // 返回创建成功的用户信息以及生成的 user_id
+                JSONObject jsonResponse = new JSONObject();
+                jsonResponse.put("success", true);
+                jsonResponse.put("message", "User created successfully");
+                response.setStatus(HttpServletResponse.SC_CREATED);
+                out.println(jsonResponse.toString());
+            } else if ("/login".equals(path)) {
+                String requestBody = sb.toString();
+                JSONObject jsonObject = new JSONObject(requestBody);
+
+                String email = jsonObject.optString("email");
+                String password = jsonObject.optString("password");
+
+                User user = userDao.findUserByEmailAndPassword(email, password);
+                if (user != null) {
+                    // 用户验证成功，生成 JWT Token
+                    String token = JwtUtil.generateToken(user.getId());
+
+                    // 返回 Token 给客户端
+                    response.setStatus(HttpServletResponse.SC_OK);
+                    out.write("{\"token\": \"" + token + "\"}");
+                } else {
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    out.write("{\"message\": \"Invalid email or password\"}");
+                }
+
+
+            } else {
+                response.sendError(HttpServletResponse.SC_NOT_FOUND);
             }
 
-            // 创建用户对象并插入数据库（ID 由数据库自动生成）
-            User user = new User(0, name, phone, email, password, admin);
-            userDao.insertUser(user);
-            ;  // 获取生成的自增 ID
-            logger.info("User created successfully: {}", name);
 
-            // 返回创建成功的用户信息以及生成的 user_id
-            JSONObject jsonResponse = new JSONObject();
-            jsonResponse.put("success", true);
-            jsonResponse.put("message", "User created successfully");
-            response.setStatus(HttpServletResponse.SC_CREATED);
-            out.println(jsonResponse.toString());
 
         } catch (SQLException e) {
             logger.error("Error creating user", e);

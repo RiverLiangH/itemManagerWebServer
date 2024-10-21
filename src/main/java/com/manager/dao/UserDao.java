@@ -153,6 +153,34 @@ public class UserDao {
         }
     }
 
+    public User findUserByEmailAndPassword(String email, String password) throws SQLException {
+        String query = "SELECT * FROM user WHERE email = ? AND password = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+
+            stmt.setString(1, email);
+            stmt.setString(2, password);
+
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                // 从查询结果集中创建 User 对象
+                User user = new User();
+                user.setId(rs.getInt("id"));
+                user.setName(rs.getString("name"));
+                user.setPhone(rs.getString("phone"));
+                user.setEmail(rs.getString("email"));
+                user.setPassword(rs.getString("password"));
+                user.setAdmin(rs.getInt("admin") == 1);
+
+                return user;
+            } else {
+                return null;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new SQLException("Failed to retrieve user by email and password", e);
+        }
+    }
     
     public List<User> getAllUsers() throws SQLException {
         List<User> users = new ArrayList<>();
