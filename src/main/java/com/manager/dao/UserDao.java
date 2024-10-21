@@ -13,23 +13,35 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class UserDao {
+    private static final Logger logger = LoggerFactory.getLogger(UserDao.class);
 
     // Method to insert a new user into the database
     public void insertUser(User user) throws SQLException {
         Connection conn = DatabaseConnection.getConnection();
         String query = "INSERT INTO user (name, phone, email, password, admin) VALUES (?, ?, ?, ?, ?)";
-
+    
         try (PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setString(1, user.getName());
             stmt.setString(2, user.getPhone());
             stmt.setString(3, user.getEmail());
             stmt.setString(4, user.getPassword());
             stmt.setBoolean(5, user.isAdmin());
-
-            stmt.executeUpdate();  // This executes the SQL statement
-        }catch (SQLException e) {
-            e.printStackTrace();
+    
+            stmt.executeUpdate();
+            logger.info("Inserting user into database with name: {}, phone: {}, email: {}, admin: {}",
+                    user.getName(), user.getPhone(), user.getEmail(), user.isAdmin());
+            logger.info("User inserted successfully");
+        } catch (SQLException e) {
+            // 加入日志打印
+            System.out.println("SQL Error while inserting user: " + e.getMessage());
+            System.out.println("SQL State: " + e.getSQLState());
+            System.out.println("Error Code: " + e.getErrorCode());
+            System.out.println("With parameters: " + user.getName() + ", " + user.getPhone() + ", " + user.getEmail() + ", " + user.getPassword() + ", " + user.isAdmin());
+            logger.error("Error inserting user into database", e);
             throw new SQLException("Failed to insert user", e);
         }
     }
@@ -37,22 +49,51 @@ public class UserDao {
     // Method to update an existing user in the database
     public void updateUser(User user) throws SQLException {
         Connection conn = DatabaseConnection.getConnection();
-        String query = "UPDATE user SET name = ?, phone = ?, email = ?, password = ?, admin = ? WHERE id = ?";
-
+        // 首先检查用户是否存在
+        String checkQuery = "SELECT COUNT(*) FROM user WHERE id = ?";
+        try (PreparedStatement checkStmt = conn.prepareStatement(checkQuery)) {
+            checkStmt.setInt(1, user.getId());
+            ResultSet rs = checkStmt.executeQuery();
+            if (rs.next()) {
+                int count = rs.getInt(1);
+                if (count == 0) {
+                    // 用户不存在
+                    throw new SQLException("User with id " + user.getId() + " does not exist");
+                }
+            }
+        }
+        // 根据是否需要更新密码，生成不同的 SQL 语句
+        String query;
+        if (user.getPassword() == null || user.getPassword().isEmpty()) {
+            // 如果密码为空，则不更新密码
+            query = "UPDATE user SET name = ?, phone = ?, email = ?, admin = ? WHERE id = ?";
+        } else {
+            // 如果有密码，则更新密码
+            query = "UPDATE user SET name = ?, phone = ?, email = ?, password = ?, admin = ? WHERE id = ?";
+        }
+    
         try (PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setString(1, user.getName());
             stmt.setString(2, user.getPhone());
             stmt.setString(3, user.getEmail());
-            stmt.setString(4, user.getPassword());
-            stmt.setBoolean(5, user.isAdmin());
-            stmt.setInt(6, user.getId());
-
-            stmt.executeUpdate();  // This updates the existing record
-        }catch (SQLException e) {
-            e.printStackTrace();
+            if (user.getPassword() == null || user.getPassword().isEmpty()) {
+                // 不更新密码的情况下，设置 admin 和 id
+                stmt.setBoolean(4, user.isAdmin());
+                stmt.setInt(5, user.getId());
+            } else {
+                // 更新密码的情况下，设置 password、admin 和 id
+                stmt.setString(4, user.getPassword());
+                stmt.setBoolean(5, user.isAdmin());
+                stmt.setInt(6, user.getId());
+            }
+    
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            logger.error("Error updating user", e);
             throw new SQLException("Failed to update user", e);
         }
     }
+    
 
     // Method to retrieve a user from the database by ID
     public User getUserById(int userId) throws SQLException {
