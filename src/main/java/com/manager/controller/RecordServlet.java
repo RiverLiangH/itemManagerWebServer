@@ -15,8 +15,12 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
 import java.sql.Time;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
+import java.sql.Timestamp;
+
+
 
 @WebServlet("/api/records/*")
 public class RecordServlet extends HttpServlet {
@@ -60,6 +64,7 @@ public class RecordServlet extends HttpServlet {
                     *   Author: Jkc
                     *
                     */
+                    System.out.println("Path Info: " + path); // 打印路径信息
                     if ("/borrow".equals(path)) {
                         System.out.println("Received POST request: borrow an item");
                         // 使用 JSON 库解析请求体中的 JSON 数据
@@ -97,6 +102,7 @@ public class RecordServlet extends HttpServlet {
                         JSONObject jsonObject = new JSONObject(requestBody);
 
                         int recordId = jsonObject.getInt("record_id");
+                        System.out.println("Entered return logic");
 
                         if (recordId == 0) {
                             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -106,7 +112,8 @@ public class RecordServlet extends HttpServlet {
                             return;
                         }
 
-                        recordDao.updateReturnTime(recordId, Time.valueOf(LocalTime.now()));
+                        recordDao.updateReturnTime(recordId, Timestamp.valueOf(LocalDateTime.now()));
+
 
                         response.setStatus(HttpServletResponse.SC_OK);
                         out.println("{\"success\": true, \"message\": \"Item returned successfully\"}");
@@ -115,8 +122,13 @@ public class RecordServlet extends HttpServlet {
                     }
 
                 } catch (SQLException e) {
+                    e.printStackTrace();
                     response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-                    out.println("{\"error\": \"Failed to borrow item\"}");
+                    response.getWriter().write("{\"error\": \"Database error: " + e.getMessage() + "\"}");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                    response.getWriter().write("{\"error\": \"Unexpected error: " + e.getMessage() + "\"}");
                 }
                 return;
             } else {

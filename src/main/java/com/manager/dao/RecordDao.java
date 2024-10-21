@@ -21,24 +21,28 @@ public class RecordDao {
 
             stmt.executeUpdate();
         } catch (SQLException e) {
-            throw new SQLException("Error inserting borrow record", e);
+            e.printStackTrace();
+            throw new SQLException("Failed to insert record: " + e.getMessage(), e);
         }
     }
 
     // 更新归还时间
-    public void updateReturnTime(int recordId, Time returnTime) throws SQLException {
+    public void updateReturnTime(int recordId, Timestamp returnTime) throws SQLException {
         Connection conn = DatabaseConnection.getConnection();
         String query = "UPDATE user_borrow_record SET return_time = ? WHERE id = ?";
-
+    
         try (PreparedStatement stmt = conn.prepareStatement(query)) {
-            stmt.setTime(1, returnTime);
+            stmt.setTimestamp(1, returnTime);
             stmt.setInt(2, recordId);
-
-            stmt.executeUpdate();
+    
+            int rowsUpdated = stmt.executeUpdate();
+            System.out.println("Rows updated: " + rowsUpdated); // 打印受影响的行数
         } catch (SQLException e) {
             throw new SQLException("Error updating return time", e);
         }
     }
+    
+    
 
     // 查询用户的所有借物记录
     public List<UserBorrowRecord> getRecordsByUserId(int userId) throws SQLException {

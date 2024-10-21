@@ -94,7 +94,32 @@ public class UserDao {
         }
     }
     
+    // 通过用户ID查询用户角色
+    public String getRoleByUserId(int userId) throws SQLException {
+        String query = "SELECT admin FROM user WHERE id = ?"; // 查询 admin 字段来判断是否为管理员
+        Connection conn = DatabaseConnection.getConnection();
 
+        try (PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, userId);  // 设置用户 ID 参数
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                boolean isAdmin = rs.getBoolean("admin"); // 获取 admin 字段
+                if (isAdmin) {
+                    return "ADMIN";  // 如果 admin 字段为 true，返回 "ADMIN"
+                } else {
+                    return "USER";   // 如果 admin 字段为 false，返回 "USER"
+                }
+            } else {
+                return null;  // 如果没有找到该用户，返回 null
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new SQLException("Failed to retrieve user role by ID", e);
+        }
+    }
+
+    
     // Method to retrieve a user from the database by ID
     public User getUserById(int userId) throws SQLException {
         Connection conn = DatabaseConnection.getConnection();
