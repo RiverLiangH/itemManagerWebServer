@@ -65,6 +65,10 @@ public class ItemServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        resp.setHeader("Access-Control-Allow-Origin", "*"); // 允许所有域名访问
+        resp.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS"); // 允许的方法
+        resp.setHeader("Access-Control-Allow-Headers", "Content-Type"); // 允许的请求头
+        resp.setHeader("Access-Control-Allow-Credentials", "true");
         System.out.println("Received POST request");
 
         try {
@@ -147,6 +151,10 @@ public class ItemServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        resp.setHeader("Access-Control-Allow-Origin", "*"); // 允许所有域名访问
+        resp.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS"); // 允许的方法
+        resp.setHeader("Access-Control-Allow-Headers", "Content-Type"); // 允许的请求头
+        resp.setHeader("Access-Control-Allow-Credentials", "true");
         System.out.println("Received GET request");
 
         try {

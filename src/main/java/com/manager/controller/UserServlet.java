@@ -172,7 +172,12 @@ public class UserServlet extends HttpServlet {
                 }
 
                 if (userDao.existUserEmail(email)) {
-                    throw new RuntimeException("User email already exists!");
+                    JSONObject jsonResponse = new JSONObject();
+                    jsonResponse.put("success", false);
+                    jsonResponse.put("message", "User email already exists!");
+                    response.setStatus(HttpServletResponse.SC_CREATED);
+                    out.println(jsonResponse);
+                    return;
                 }
 
                 String hashedPassword = hashPassword(password);

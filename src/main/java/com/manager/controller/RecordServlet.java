@@ -46,6 +46,10 @@ public class RecordServlet extends HttpServlet {
     // 处理 POST 请求：归还物品
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        response.setHeader("Access-Control-Allow-Origin", "*"); // 允许所有域名访问
+        response.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS"); // 允许的方法
+        response.setHeader("Access-Control-Allow-Headers", "Content-Type"); // 允许的请求头
+        response.setHeader("Access-Control-Allow-Credentials", "true");
         logger.info("Received POST request: record doPost");
         String token = request.getHeader("Authorization");
         String jsonResponse = "{\"message\": \"Hello, World!\"}";
@@ -192,6 +196,10 @@ public class RecordServlet extends HttpServlet {
     // 处理 GET 请求：查询用户的所有借物记录
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        response.setHeader("Access-Control-Allow-Origin", "*"); // 允许所有域名访问
+        response.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS"); // 允许的方法
+        response.setHeader("Access-Control-Allow-Headers", "Content-Type"); // 允许的请求头
+        response.setHeader("Access-Control-Allow-Credentials", "true");
         response.setContentType("application/json");
         PrintWriter out = response.getWriter();
 
