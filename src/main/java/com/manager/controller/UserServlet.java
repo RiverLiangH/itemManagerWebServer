@@ -2,19 +2,26 @@ package com.manager.controller;
 
 import com.manager.dao.UserDao;
 import com.manager.model.User;
+
+import java.sql.Connection;
 import java.sql.SQLException;  // 导入 SQLException
 
+import com.manager.utility.EmailUtil;
 import com.manager.utility.JwtUtil;
+import com.manager.utility.PasswordUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.UUID;
 
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.manager.utility.PasswordUtil.hashPassword;
 
 @WebServlet("/api/users/*")
 public class UserServlet extends HttpServlet {
@@ -24,6 +31,12 @@ public class UserServlet extends HttpServlet {
     // 处理 GET 请求：根据ID或名称查询用户
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        // 设置CORS头
+        response.setHeader("Access-Control-Allow-Origin", "*"); // 允许所有域名访问
+        response.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS"); // 允许的方法
+        response.setHeader("Access-Control-Allow-Headers", "Content-Type"); // 允许的请求头
+        response.setHeader("Access-Control-Allow-Credentials", "true");
+
         String pathInfo = request.getPathInfo();
         response.setContentType("application/json");
         PrintWriter out = response.getWriter();
@@ -33,6 +46,40 @@ public class UserServlet extends HttpServlet {
             if (pathInfo == null || pathInfo.equals("/")) {
                 // 获取所有用户
                 out.println(userDao.getAllUsers());
+            } else if ("/verify".equals(pathInfo)){
+                String token = request.getParameter("token");
+                logger.info("Received token: {}\n", token);
+
+                // 获取 session 中的验证令牌和用户数据
+                HttpSession session = request.getSession();
+                String sessionToken = (String) session.getAttribute("verificationToken");
+                logger.info("Session token: {}\n", sessionToken);
+                if (token != null && token.equals(sessionToken)) {
+                    // 验证通过，获取用户数据
+                    String name = (String) session.getAttribute("username");
+                    String phone = (String) session.getAttribute("phone");
+                    String email = (String) session.getAttribute("email");
+                    String password = (String) session.getAttribute("password");
+                    boolean admin = (boolean) session.getAttribute("admin");
+
+                    // 将用户数据写入数据库
+                    User user = new User(0, name, phone, email, password, admin);
+                    userDao.insertUser(user);
+                    // response.getWriter().write("Email verification successful, registration complete!");
+
+                    logger.info("User created successfully: {}", name);
+
+                    // 返回创建成功的用户信息以及生成的 user_id
+                    JSONObject jsonResponse = new JSONObject();
+                    jsonResponse.put("success", true);
+                    jsonResponse.put("message", "Email verification successful, registration complete!");
+                    response.setStatus(HttpServletResponse.SC_CREATED);
+                    out.println(jsonResponse);
+
+                } else {
+                    // 验证失败
+                    response.getWriter().write("Invalid verification link.");
+                }
             } else {
                 String[] pathParts = pathInfo.split("/");
                 if (pathParts.length == 3 && "idByUsername".equals(pathParts[1])) {
@@ -87,6 +134,11 @@ public class UserServlet extends HttpServlet {
     // 处理 POST 请求：创建新用户
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        response.setHeader("Access-Control-Allow-Origin", "*"); // 允许所有域名访问
+        response.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS"); // 允许的方法
+        response.setHeader("Access-Control-Allow-Headers", "Content-Type"); // 允许的请求头
+        response.setHeader("Access-Control-Allow-Credentials", "true");
+
         System.out.println("Received POST request");
         response.setContentType("application/json");
         String path = request.getPathInfo();
@@ -102,7 +154,7 @@ public class UserServlet extends HttpServlet {
         }
 
         try {
-            if ("/create".equals(path)) {
+            if ("/register".equals(path)) {
                 // 使用 JSON 库解析请求体中的 JSON 数据
                 String requestBody = sb.toString();
                 JSONObject jsonObject = new JSONObject(requestBody);
@@ -119,26 +171,57 @@ public class UserServlet extends HttpServlet {
                     return;
                 }
 
-                // 创建用户对象并插入数据库（ID 由数据库自动生成）
-                User user = new User(0, name, phone, email, password, admin);
-                userDao.insertUser(user);
-                ;  // 获取生成的自增 ID
-                logger.info("User created successfully: {}", name);
+                if (userDao.existUserEmail(email)) {
+                    throw new RuntimeException("User email already exists!");
+                }
 
-                // 返回创建成功的用户信息以及生成的 user_id
+                String hashedPassword = hashPassword(password);
+
+                // 生成唯一的邮箱验证令牌
+                String verificationToken = UUID.randomUUID().toString();
+
+                // 将用户信息和验证令牌存入 session
+                HttpSession session = request.getSession();
+                session.setAttribute("username", name);
+                session.setAttribute("phone", phone);
+                session.setAttribute("email", email);
+                session.setAttribute("password", hashedPassword);
+                session.setAttribute("admin", admin);
+                session.setAttribute("verificationToken", verificationToken);
+                // 发送验证邮件
+                String verificationLink = "http://localhost:8080/item_manager_backend/api/users/verify?token=" + verificationToken;
+                logger.info("Generated token: {}", verificationToken);
+
+                EmailUtil.sendVerificationEmail(email, verificationLink);
+
                 JSONObject jsonResponse = new JSONObject();
                 jsonResponse.put("success", true);
-                jsonResponse.put("message", "User created successfully");
+                jsonResponse.put("message", "Registration information has been submitted. Please check your email for verification.");
                 response.setStatus(HttpServletResponse.SC_CREATED);
-                out.println(jsonResponse.toString());
+                out.println(jsonResponse);
+
+
+                // 创建用户对象并插入数据库（ID 由数据库自动生成）
+                // User user = new User(0, name, phone, email, hashedPassword, admin);
+                // userDao.insertUser(user);
+                // 获取生成的自增 ID
+                // logger.info("User created successfully: {}", name);
+
+                // 返回创建成功的用户信息以及生成的 user_id
+//                JSONObject jsonResponse = new JSONObject();
+//                jsonResponse.put("success", true);
+//                jsonResponse.put("message", "User created successfully");
+//                response.setStatus(HttpServletResponse.SC_CREATED);
+//                out.println(jsonResponse.toString());
             } else if ("/login".equals(path)) {
                 String requestBody = sb.toString();
                 JSONObject jsonObject = new JSONObject(requestBody);
 
                 String email = jsonObject.optString("email");
                 String password = jsonObject.optString("password");
+                String hashedPassword = PasswordUtil.hashPassword(password);
 
-                User user = userDao.findUserByEmailAndPassword(email, password);
+                User user = userDao.findUserByEmailAndPassword(email, hashedPassword);
                 if (user != null) {
                     // 用户验证成功，生成 JWT Token
                     String token = JwtUtil.generateToken(user.getId());

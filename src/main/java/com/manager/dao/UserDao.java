@@ -46,6 +46,24 @@ public class UserDao {
         }
     }
 
+    public boolean existUserEmail(String email) throws SQLException {
+        Connection conn = DatabaseConnection.getConnection();
+        String checkQuery = "SELECT * FROM user WHERE email = ?";
+        try (PreparedStatement checkStmt = conn.prepareStatement(checkQuery)) {
+            checkStmt.setString(1, email);
+            ResultSet rs = checkStmt.executeQuery();
+
+            if (rs.next()) {
+                return true;
+            }
+        } catch (SQLException e) {
+            logger.error("Error updating user", e);
+            throw new SQLException("Failed to update user", e);
+        }
+
+        return false;
+    }
+
     // Method to update an existing user in the database
     public void updateUser(User user) throws SQLException {
         Connection conn = DatabaseConnection.getConnection();
