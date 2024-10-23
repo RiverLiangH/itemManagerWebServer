@@ -194,7 +194,7 @@ public class UserServlet extends HttpServlet {
                 session.setAttribute("admin", admin);
                 session.setAttribute("verificationToken", verificationToken);
                 // 发送验证邮件
-                String verificationLink = "http://localhost:8080/item_manager_backend/api/users/verify?token=" + verificationToken;
+                String verificationLink = "http://119.91.235.144:8080/item_manager_backend/api/users/verify?token=" + verificationToken;
                 logger.info("Generated token: {}", verificationToken);
 
                 EmailUtil.sendVerificationEmail(email, verificationLink);
