@@ -63,6 +63,8 @@ public class ItemServlet extends HttpServlet {
         return true;
     }
 
+    // 处理 POST 请求：增加物品
+    // 处理 POST 请求：删除物品
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         resp.setHeader("Access-Control-Allow-Origin", "*"); // 允许所有域名访问
@@ -162,10 +164,10 @@ public class ItemServlet extends HttpServlet {
             resp.setContentType("application/json");
             resp.setCharacterEncoding("UTF-8");
 
-            // 验证管理员权限
-            if (!verifyAdmin(req, resp)) {
-                return; // 如果不是管理员，直接返回，不执行后续逻辑
-            }
+//            // 验证管理员权限
+//            if (!verifyAdmin(req, resp)) {
+//                return; // 如果不是管理员，直接返回，不执行后续逻辑
+//            }
 
             // 获取请求路径
             String path = req.getPathInfo();
@@ -175,6 +177,17 @@ public class ItemServlet extends HttpServlet {
                 JSONArray itemsArray = itemDao.getAllItems(); // 调用查询所有物品的方法
 
                 // 检查是否查询到了数据
+                if (itemsArray.length() > 0) {
+                    System.out.println("Items found: " + itemsArray.length());
+                    resp.getWriter().write(itemsArray.toString()); // 返回 JSON 数据
+                } else {
+                    System.out.println("No items found.");
+                    resp.getWriter().write("[]"); // 如果没有数据，返回空数组
+                }
+            } else if ("/records".equals(path)) {
+                System.out.println("Fetching items from the database...");
+                JSONArray itemsArray = itemDao.getAllItemRecords();
+
                 if (itemsArray.length() > 0) {
                     System.out.println("Items found: " + itemsArray.length());
                     resp.getWriter().write(itemsArray.toString()); // 返回 JSON 数据

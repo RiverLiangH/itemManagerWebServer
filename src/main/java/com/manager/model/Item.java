@@ -16,8 +16,6 @@ public class Item {
         this.id = id;
         this.name = name;
         this.type = type;
-        // this.totalCount = totalCount;
-        // this.currentStock = currentStock;
         this.current_condition = current_condition;
         this.location = location;
     }

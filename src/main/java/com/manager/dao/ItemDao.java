@@ -1,9 +1,7 @@
 package com.manager.dao;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
+
 import com.manager.model.Item;
 import com.manager.dao.DatabaseConnection;
 import com.manager.model.User;
@@ -80,6 +78,39 @@ public class ItemDao {
                 itemObject.put("item_type", rs.getString("type"));
                 itemObject.put("item_total_count", rs.getInt("item_total_count"));
                 itemObject.put("item_current_stock", rs.getInt("item_current_stock"));
+                itemObject.put("location", rs.getInt("location"));
+
+                itemsArray.put(itemObject);
+            }
+
+            // 打印返回的数组大小，用于调试
+            System.out.println("Total items fetched: " + itemsArray.length());
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.out.println("SQL Exception: " + e.getMessage());
+            throw new SQLException("Failed to fetch items", e);
+        }
+
+        return itemsArray;
+    }
+
+    public JSONArray getAllItemRecords() throws SQLException {
+        Connection conn = DatabaseConnection.getConnection();
+        String query = "SELECT * FROM item";
+
+        JSONArray itemsArray = new JSONArray();
+
+        try (PreparedStatement stmt = conn.prepareStatement(query);
+             ResultSet rs = stmt.executeQuery()) {
+
+            // 如果有数据，逐条遍历结果集
+            while (rs.next()) {
+                JSONObject itemObject = new JSONObject();
+                itemObject.put("item_id", rs.getInt("id"));
+                itemObject.put("item_name", rs.getString("name"));
+                itemObject.put("item_type", rs.getString("type"));
+                itemObject.put("item_current_condition", rs.getInt("current_condition"));
                 itemObject.put("location", rs.getInt("location"));
 
                 itemsArray.put(itemObject);
