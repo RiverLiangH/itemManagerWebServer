@@ -8,6 +8,8 @@ import com.manager.utility.JwtUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
+
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -184,53 +186,8 @@ public class RecordServlet extends HttpServlet {
 
     }
 
-    // 处理 PUT 请求：归还物品
-//    @Override
-//    protected void doPut(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-//        String token = request.getHeader("Authorization");
-//
-//        if (token != null && token.startsWith("Bearer ")) {
-//            response.setContentType("application/json");
-//            PrintWriter out = response.getWriter();
-//
-//            // 读取请求体中的 JSON 数据
-//            StringBuilder sb = new StringBuilder();
-//            BufferedReader reader = request.getReader();
-//            String line;
-//            while ((line = reader.readLine()) != null) {
-//                sb.append(line);
-//            }
-//
-//            try {
-//                // 使用 JSON 库解析请求体中的 JSON 数据
-//                String requestBody = sb.toString();
-//                JSONObject jsonObject = new JSONObject(requestBody);
-//
-//                int recordId = jsonObject.getInt("record_id");
-//
-//                if (recordId == 0) {
-//                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-//                    out.println("{\"error\": \"Missing required fields\"}");
-//                    return;
-//                }
-//
-//                // 更新归还时间
-//                recordDao.updateReturnTime(recordId, Time.valueOf(LocalTime.now()));
-//
-//                response.setStatus(HttpServletResponse.SC_OK);
-//                out.println("{\"success\": true, \"message\": \"Item returned successfully\"}");
-//
-//            } catch (SQLException e) {
-//                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-//                out.println("{\"error\": \"Failed to return item\"}");
-//            }
-//        } else {
-//            // 验证失败，返回 401
-//            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-//            response.getWriter().write("Unauthorized");
-//        }
-//
-//    }
+
+
 
     // 处理 GET 请求：查询用户的所有借物记录
     @Override
@@ -238,29 +195,39 @@ public class RecordServlet extends HttpServlet {
         response.setContentType("application/json");
         PrintWriter out = response.getWriter();
 
-        String pathInfo = request.getPathInfo();
-        if (pathInfo == null || pathInfo.equals("/")) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            out.println("{\"error\": \"Invalid request\"}");
+        // 获取 Authorization 头中的 token
+        String token = request.getHeader("Authorization");
+        
+        if (token == null || !token.startsWith("Bearer ")) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            out.println("{\"error\": \"Missing or invalid Authorization header\"}");
             return;
         }
 
         try {
-            String[] pathParts = pathInfo.split("/");
-            if (pathParts.length == 2) {
-                int userId = Integer.parseInt(pathParts[1]);
-                // 查询用户的借物记录
-                List<UserBorrowRecord> records = recordDao.getRecordsByUserId(userId);
-                JSONObject jsonResponse = new JSONObject();
-                jsonResponse.put("records", records);
-                out.println(jsonResponse.toString());
-            } else {
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                out.println("{\"error\": \"Invalid request\"}");
+            token = token.substring(7);  // 去掉 "Bearer " 前缀
+            String userIdStr = JwtUtil.validateToken(token);  // 解码 token 获取 userId
+
+            if (userIdStr == null) {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                out.println("{\"error\": \"Invalid token\"}");
+                return;
             }
+
+            int userId = Integer.parseInt(userIdStr);
+
+            // 查询用户的借物记录
+            List<UserBorrowRecord> records = recordDao.getRecordsByUserId(userId);
+            JSONObject jsonResponse = new JSONObject();
+            jsonResponse.put("records", records);
+            out.println(jsonResponse.toString());
+
         } catch (SQLException e) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             out.println("{\"error\": \"Error fetching records\"}");
+        } catch (Exception e) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            out.println("{\"error\": \"Unexpected error\"}");
         }
     }
 }
