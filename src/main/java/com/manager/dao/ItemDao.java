@@ -96,4 +96,21 @@ public class ItemDao {
 
         return itemsArray;
     }
+
+
+    // 更新物品的状态：current_condition 列
+    public void updateItemCondition(int itemId, int condition) throws SQLException {
+        Connection conn = DatabaseConnection.getConnection();
+        String query = "UPDATE item SET current_condition = ? WHERE id = ?";
+
+        try (PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, condition);
+            stmt.setInt(2, itemId);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new SQLException("Failed to update item condition", e);
+        }
+    }
+    
 }

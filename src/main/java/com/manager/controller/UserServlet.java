@@ -252,6 +252,28 @@ public class UserServlet extends HttpServlet {
         response.setContentType("application/json");
         PrintWriter out = response.getWriter();
 
+        // 获取 Authorization 头中的 token
+        String token = request.getHeader("Authorization");
+        if (token == null || !token.startsWith("Bearer ")) {
+            // 如果没有 token 或者 token 格式不正确，返回 401 Unauthorized
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            out.println("{\"error\": \"Missing or invalid Authorization header\"}");
+            return;
+        }
+
+        // 验证 token 的有效性并获取用户ID
+        token = token.substring(7); // 去掉 "Bearer " 前缀
+        String userIdStr = JwtUtil.validateToken(token);
+        if (userIdStr == null) {
+            // 如果 token 无效，返回 401 Unauthorized
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            out.println("{\"error\": \"Unauthorized: Invalid token\"}");
+            return;
+        }
+
+        // 将 userIdStr 转换为整型
+        int userId = Integer.parseInt(userIdStr);
+
         // 读取请求体中的 JSON 数据
         StringBuilder sb = new StringBuilder();
         BufferedReader reader = request.getReader();
@@ -265,20 +287,19 @@ public class UserServlet extends HttpServlet {
             String requestBody = sb.toString();
             JSONObject jsonObject = new JSONObject(requestBody);
 
-            int userId = jsonObject.optInt("user_id");
             String name = jsonObject.optString("user_name");
             String phone = jsonObject.optString("user_phone");
             String email = jsonObject.optString("user_email");
             String password = jsonObject.optString("user_password");
             boolean admin = jsonObject.optBoolean("admin");
 
-            if (userId == 0 || name.isEmpty() || phone.isEmpty() || email.isEmpty()) {
+            if (name.isEmpty() || phone.isEmpty() || email.isEmpty()) {
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                out.println("{\"error\": \"Missing required fields or invalid user_id\"}");
+                out.println("{\"error\": \"Missing required fields\"}");
                 return;
             }
 
-            // 更新用户信息
+            // 更新用户信息，使用从 token 中解码出来的 userId
             User user = new User(userId, name, phone, email, password, admin);
             try {
                 userDao.updateUser(user);
@@ -304,6 +325,8 @@ public class UserServlet extends HttpServlet {
             out.println("{\"error\": \"Invalid request format\"}");
         }
     }
+
+
 
 
     // 处理 DELETE 请求：删除用户
