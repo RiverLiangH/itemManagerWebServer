@@ -5,7 +5,9 @@ import com.manager.dao.DatabaseConnection;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class RecordDao {
     
@@ -13,18 +15,20 @@ public class RecordDao {
     public void insertRecord(UserBorrowRecord record) throws SQLException {
         Connection conn = DatabaseConnection.getConnection();
         String query = "INSERT INTO user_borrow_record (user_id, item_id, borrow_time) VALUES (?, ?, ?)";
-
+    
         try (PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setInt(1, record.getUserId());
             stmt.setInt(2, record.getItemId());
-            stmt.setTime(3, record.getBorrowTime());
-
+            stmt.setTimestamp(3, record.getBorrowTime());  // 直接使用 Timestamp，无需转换
+    
             stmt.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
             throw new SQLException("Failed to insert record: " + e.getMessage(), e);
         }
     }
+    
+
 
     // 更新归还时间
     public void updateReturnTime(int recordId, Timestamp returnTime) throws SQLException {
@@ -45,27 +49,33 @@ public class RecordDao {
     
 
     // 查询用户的所有借物记录
-    public List<UserBorrowRecord> getRecordsByUserId(int userId) throws SQLException {
+    public List<Map<String, Object>> getDetailedRecordsByUserId(int userId) throws SQLException {
         Connection conn = DatabaseConnection.getConnection();
-        String query = "SELECT * FROM user_borrow_record WHERE user_id = ?";
-        List<UserBorrowRecord> records = new ArrayList<>();
+        String query = "SELECT ubr.id as record_id, ubr.user_id, ubr.item_id, ubr.borrow_time, ubr.return_time, "
+                    + "i.name as item_name, i.type as item_type, i.location "
+                    + "FROM user_borrow_record ubr "
+                    + "JOIN item i ON ubr.item_id = i.id "
+                    + "WHERE ubr.user_id = ?";
+        List<Map<String, Object>> records = new ArrayList<>();
 
         try (PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setInt(1, userId);
             ResultSet rs = stmt.executeQuery();
 
             while (rs.next()) {
-                UserBorrowRecord record = new UserBorrowRecord();
-                record.setId(rs.getInt("id"));
-                record.setUserId(rs.getInt("user_id"));
-                record.setItemId(rs.getInt("item_id"));
-                record.setBorrowTime(rs.getTime("borrow_time"));
-                record.setReturnTime(rs.getTime("return_time"));
+                Map<String, Object> record = new HashMap<>();
+                record.put("record_id", rs.getInt("record_id"));
+                record.put("user_id", rs.getInt("user_id"));
+                record.put("item_id", rs.getInt("item_id"));
+                record.put("borrow_time", rs.getTimestamp("borrow_time"));
+                record.put("return_time", rs.getTimestamp("return_time"));
+                record.put("item_name", rs.getString("item_name"));
+                record.put("item_type", rs.getString("item_type"));
 
                 records.add(record);
             }
         } catch (SQLException e) {
-            throw new SQLException("Error fetching records", e);
+            throw new SQLException("Error fetching records with details", e);
         }
 
         return records;
@@ -86,8 +96,8 @@ public class RecordDao {
                 record.setId(rs.getInt("id"));
                 record.setUserId(rs.getInt("user_id"));
                 record.setItemId(rs.getInt("item_id"));
-                record.setBorrowTime(rs.getTime("borrow_time"));
-                record.setReturnTime(rs.getTime("return_time"));
+                record.setBorrowTime(rs.getTimestamp("borrow_time"));  // 使用 getTimestamp() 获取完整时间戳
+                record.setReturnTime(rs.getTimestamp("return_time"));  // 使用 getTimestamp() 获取完整时间戳
             }
         } catch (SQLException e) {
             throw new SQLException("Error fetching record by ID", e);
@@ -95,6 +105,7 @@ public class RecordDao {
 
         return record;
     }
+
     // 检查某用户是否已经借用了该物品且未归还
     public boolean isItemBorrowed(int userId, int itemId) throws SQLException {
         String query = "SELECT * FROM user_borrow_record WHERE user_id = ? AND item_id = ? AND return_time IS NULL";
