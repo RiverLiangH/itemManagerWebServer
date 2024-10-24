@@ -1,10 +1,6 @@
 package com.manager.dao;
 
-import java.sql.*;
-
 import com.manager.model.Item;
-import com.manager.dao.DatabaseConnection;
-import com.manager.model.User;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -145,6 +141,7 @@ public class ItemDao {
             throw new SQLException("Failed to update item condition", e);
         }
     }
+
     // 查询符合名称且状态为可借用(1)的物品，并随机选择一个
     public Item getAvailableItemsByName(String name) throws SQLException {
         Connection conn = DatabaseConnection.getConnection();
@@ -178,5 +175,27 @@ public class ItemDao {
         return null;
     }
 
-    
+    // 查询符合名称的物品，并随机删除一个
+    public void deleteRandomItemByItemName(String name) throws SQLException {
+        Connection conn = DatabaseConnection.getConnection();
+        String query = "SELECT id FROM item WHERE name = ? AND current_condition = 1"; // 查询状态为1的可借用物品
+        List<Integer> availableItemsId = new ArrayList<>();
+
+        try (PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setString(1, name); // 设置物品名称
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                // 将结果存储在Item对象中
+                availableItemsId.add(rs.getInt("id"));
+            }
+        }
+
+        // 如果有符合条件的物品，随机选一个
+        if (!availableItemsId.isEmpty()) {
+            Random random = new Random();
+            Integer delId = availableItemsId.get(random.nextInt(availableItemsId.size()));
+            deleteItem(delId);
+        }
+    }
 }

@@ -4,7 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="97d09836-c0b0-44b5-adb3-518a21fce4c5" name="更改" comment="" />
+    <list default="true" id="97d09836-c0b0-44b5-adb3-518a21fce4c5" name="更改" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/manager/controller/ItemServlet.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/manager/controller/ItemServlet.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/manager/dao/ItemDao.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/manager/dao/ItemDao.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/manager/utility/TokenManager.java" beforeDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -36,7 +41,7 @@
   "keyToString": {
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "dev__1.6",
+    "git-widget-placeholder": "dev__1,7",
     "last_opened_file_path": "C:/Users/13067/River/appData/apache-tomcat-10.1.29-windows-x64/apache-tomcat-10.1.29/lib/servlet-api.jar",
     "project.structure.last.edited": "Libraries",
     "project.structure.proportion": "0.16601562",

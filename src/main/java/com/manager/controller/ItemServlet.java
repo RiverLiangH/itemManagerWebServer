@@ -102,13 +102,13 @@ public class ItemServlet extends HttpServlet {
                 JSONObject jsonObject = new JSONObject(requestData);
                 String name = jsonObject.getString("name");
                 String type = jsonObject.getString("type");
-                int location = jsonObject.getInt("location");
+                // int location = jsonObject.getInt("location");
 
                 // 创建 Item 对象
                 Item item = new Item();
                 item.setName(name);
                 item.setType(type);
-                item.setLocation(location);
+                item.setLocation(1);
 
                 // 插入 Item 到数据库
                 itemDao.insertItem(item);
@@ -129,9 +129,9 @@ public class ItemServlet extends HttpServlet {
                 System.out.println("Received JSON: " + jsonInput.toString());
 
                 JSONObject jsonObject = new JSONObject(jsonInput.toString());
-                int itemId = jsonObject.getInt("id"); // 获取要删除的 itemId
+                String itemName = jsonObject.getString("name"); // 获取要删除的 item_name
 
-                itemDao.deleteItem(itemId);
+                itemDao.deleteRandomItemByItemName(itemName);
 
                 // 设置成功响应消息
                 jsonResponse = "{\"message\": \"Item deleted successfully\"}";
