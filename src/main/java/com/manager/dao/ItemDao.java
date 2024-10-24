@@ -59,10 +59,9 @@ public class ItemDao {
     public JSONArray getAllItems() throws SQLException {
         Connection conn = DatabaseConnection.getConnection();
         String query = "SELECT name, type, COUNT(*) AS item_total_count, " +
-                "SUM(CASE WHEN current_condition = 1 THEN 1 ELSE 0 END) AS item_current_stock, " +
-                "location " +
+                "SUM(CASE WHEN current_condition = 1 THEN 1 ELSE 0 END) AS item_current_stock " +
                 "FROM item " +
-                "GROUP BY name, type, location";
+                "GROUP BY name, type";
 
         JSONArray itemsArray = new JSONArray();
 
@@ -76,7 +75,7 @@ public class ItemDao {
                 itemObject.put("item_type", rs.getString("type"));
                 itemObject.put("item_total_count", rs.getInt("item_total_count"));
                 itemObject.put("item_current_stock", rs.getInt("item_current_stock"));
-                itemObject.put("location", rs.getInt("location"));
+                // itemObject.put("location", rs.getInt("location"));
 
                 itemsArray.put(itemObject);
             }
