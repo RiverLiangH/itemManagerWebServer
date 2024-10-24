@@ -126,4 +126,22 @@ public class RecordDao {
             return isReturned;  // 返回是否有结果
         }
     }
+
+    //查询用户借阅同名物品数目
+    public int countBorrowedItemsByName(int userId, String itemName) throws SQLException {
+        String query = "SELECT COUNT(*) AS item_count FROM user_borrow_record ubr " +
+                       "JOIN item i ON ubr.item_id = i.id " +
+                       "WHERE ubr.user_id = ? AND i.name = ? AND ubr.return_time IS NULL";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, userId);
+            stmt.setString(2, itemName);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("item_count");
+            }
+            return 0;  // 如果没有结果，返回0
+        }
+    }
+    
 }

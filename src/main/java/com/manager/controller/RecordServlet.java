@@ -87,38 +87,58 @@ public class RecordServlet extends HttpServlet {
 
                     if ("/borrow".equals(path)) {
                         logger.info("Processing borrow request");
-                        JSONObject jsonObject = new JSONObject(sb.toString());
-                        int userId = Integer.parseInt(userIdStr);
-                        int itemId = jsonObject.getInt("item_id");
 
-                        if (userId == 0 || itemId == 0) {
-                            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                            out.println("{\"error\": \"Missing required fields\"}");
+                        // 从请求体中获取物品名称
+                        JSONObject jsonObject = new JSONObject(sb.toString());
+                        String itemName = jsonObject.getString("item_name");  // 前端提供物品名称
+                        // 获取用户ID
+                        int userId = Integer.parseInt(userIdStr);
+                        // 查询用户已经借用了多少个同名物品
+                        int borrowedItemCount = recordDao.countBorrowedItemsByName(userId, itemName);
+                        if (borrowedItemCount >= 3) {
+                            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                            out.println("{\"error\": \"You have already borrowed more than 3 items with the same name\"}");
                             return;
                         }
+                        // 根据物品名称查找可借用的物品
+                        Item itemToBorrow = itemDao.getAvailableItemsByName(itemName);
 
-                        // 检查是否已经借用了该物品且未归还
-                        if (recordDao.isItemBorrowed(userId, itemId)) {
-                            response.setStatus(HttpServletResponse.SC_CONFLICT);
-                            jsonResponse = "{\"error\": \"Item is already borrowed and not yet returned\"}";
+                        if (itemToBorrow == null) {
+                            // 没有找到可借用的物品
+                            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                            jsonResponse = "{\"error\": \"No available items with the name " + itemName + "\"}";
                             out.println(jsonResponse);
                             return;
                         }
 
-                        // 创建借物记录
+
+
+                        // 检查用户是否已经借用了该物品且未归还
+                        if (recordDao.isItemBorrowed(userId, itemToBorrow.getId())) {
+                            response.setStatus(HttpServletResponse.SC_CONFLICT);
+                            jsonResponse = "{\"error\": \"You have already borrowed this item and not yet returned it.\"}";
+                            out.println(jsonResponse);
+                            return;
+                        }
+
+                        // 创建借用记录
                         UserBorrowRecord record = new UserBorrowRecord();
                         record.setUserId(userId);
-                        record.setItemId(itemId);
+                        record.setItemId(itemToBorrow.getId());
                         record.setBorrowTime(Time.valueOf(LocalTime.now()));
 
+                        // 插入借用记录
                         recordDao.insertRecord(record);
 
-                        // 更新 item 表的 current_condition 为 0（借出状态）
-                        itemDao.updateItemCondition(itemId, 0);
+                        // 更新物品状态为已借出 (current_condition = 0)
+                        itemDao.updateItemCondition(itemToBorrow.getId(), 0);
 
+                        // 返回借用成功的 item_id 给前端
                         response.setStatus(HttpServletResponse.SC_CREATED);
-                        jsonResponse = "{\"success\": true, \"message\": \"Item borrowed successfully\"}";
-                        response.getWriter().write(jsonResponse);
+                        jsonResponse = "{\"success\": true, \"message\": \"Item borrowed successfully\", \"item_id\": " + itemToBorrow.getId() + "}";
+                        out.println(jsonResponse);
+
+                    
                         // out.println("{\"success\": true, \"message\": \"Item borrowed successfully\"}");
                     } else if ("/return".equals(path)) {
                         /*

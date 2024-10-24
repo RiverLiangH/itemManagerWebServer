@@ -15,6 +15,8 @@ import java.sql.SQLException;
 import org.json.JSONObject;
 import org.json.JSONArray;
 
+import java.util.Random;
+
 public class ItemDao {
     /*
     *  API Des: Add Item
@@ -143,5 +145,38 @@ public class ItemDao {
             throw new SQLException("Failed to update item condition", e);
         }
     }
+    // 查询符合名称且状态为可借用(1)的物品，并随机选择一个
+    public Item getAvailableItemsByName(String name) throws SQLException {
+        Connection conn = DatabaseConnection.getConnection();
+        String query = "SELECT * FROM item WHERE name = ? AND current_condition = 1"; // 查询状态为1的可借用物品
+        List<Item> availableItems = new ArrayList<>();
+
+        try (PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setString(1, name); // 设置物品名称
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                // 将结果存储在Item对象中
+                Item item = new Item();
+                item.setId(rs.getInt("id"));
+                item.setName(rs.getString("name"));
+                item.setType(rs.getString("type"));
+                item.setCondition(rs.getInt("current_condition"));
+                item.setLocation(rs.getInt("location"));
+
+                availableItems.add(item);
+            }
+        }
+
+        // 如果有符合条件的物品，随机选一个
+        if (!availableItems.isEmpty()) {
+            Random random = new Random();
+            return availableItems.get(random.nextInt(availableItems.size()));
+        }
+
+        // 没有找到可借用的物品时返回null
+        return null;
+    }
+
     
 }
