@@ -50,8 +50,8 @@ public class RecordServlet extends HttpServlet {
         response.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS"); // 允许的方法
         response.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization"); // 允许的请求头
         response.setHeader("Access-Control-Allow-Credentials", "true");
-        String token = request.getHeader("Authorization");
-        String jsonResponse = "{\"message\": \"Hello, World!\"}";
+//        String token = request.getHeader("Authorization");
+//        String jsonResponse = "{\"message\": \"Hello, World!\"}";
 
     }
 
@@ -233,7 +233,7 @@ public class RecordServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         response.setHeader("Access-Control-Allow-Origin", "*");
         response.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-        response.setHeader("Access-Control-Allow-Headers", "Content-Type");
+        response.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization"); // 允许的请求头
         response.setHeader("Access-Control-Allow-Credentials", "true");
         response.setContentType("application/json");
         PrintWriter out = response.getWriter();

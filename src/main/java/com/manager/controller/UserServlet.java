@@ -32,12 +32,11 @@ public class UserServlet extends HttpServlet {
     // 跨域问题
     protected void doOptions(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         response.setHeader("Access-Control-Allow-Origin", "*"); // 允许所有域名访问
-        response.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS"); // 允许的方法
+        response.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE"); // 允许的方法
         response.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization"); // 允许的请求头
         response.setHeader("Access-Control-Allow-Credentials", "true");
-        logger.info("Received POST request: record doPost");
-        String token = request.getHeader("Authorization");
-        String jsonResponse = "{\"message\": \"Hello, World!\"}";
+//        String token = request.getHeader("Authorization");
+//        String jsonResponse = "{\"message\": \"Hello, World!\"}";
 
     }
 
@@ -148,8 +147,8 @@ public class UserServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         response.setHeader("Access-Control-Allow-Origin", "*"); // 允许所有域名访问
-        response.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS"); // 允许的方法
-        response.setHeader("Access-Control-Allow-Headers", "Content-Type"); // 允许的请求头
+        response.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT"); // 允许的方法
+        response.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization"); // 允许的请求头
         response.setHeader("Access-Control-Allow-Credentials", "true");
 
         System.out.println("Received POST request");
@@ -267,6 +266,11 @@ public class UserServlet extends HttpServlet {
     // 处理 PUT 请求：更新用户
     @Override
     protected void doPut(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        response.setHeader("Access-Control-Allow-Origin", "*"); // 允许所有域名访问
+        response.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT"); // 允许的方法
+        response.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization"); // 允许的请求头
+        response.setHeader("Access-Control-Allow-Credentials", "true");
+
         response.setContentType("application/json");
         PrintWriter out = response.getWriter();
 
@@ -350,7 +354,12 @@ public class UserServlet extends HttpServlet {
     // 处理 DELETE 请求：删除用户
     @Override
     protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        response.setHeader("Access-Control-Allow-Origin", "*"); // 允许所有域名访问
+        response.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE"); // 允许的方法
+        response.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization"); // 允许的请求头
+        response.setHeader("Access-Control-Allow-Credentials", "true");
         response.setContentType("application/json");
+
         PrintWriter out = response.getWriter();
 
         try {
