@@ -50,7 +50,6 @@ public class RecordServlet extends HttpServlet {
         response.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS"); // 允许的方法
         response.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization"); // 允许的请求头
         response.setHeader("Access-Control-Allow-Credentials", "true");
-        logger.info("Received POST request: record doPost");
         String token = request.getHeader("Authorization");
         String jsonResponse = "{\"message\": \"Hello, World!\"}";
 
