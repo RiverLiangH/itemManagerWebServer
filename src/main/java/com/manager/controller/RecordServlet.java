@@ -20,6 +20,7 @@ import java.sql.Time;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Map;
 import java.sql.Timestamp;
 
 
@@ -42,25 +43,26 @@ public class RecordServlet extends HttpServlet {
         itemDao = new ItemDao();  // 初始化 ItemDao
     }
 
+    // 处理 Options 请求
+    // 跨域问题
     protected void doOptions(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        response.setHeader("Access-Control-Allow-Origin", "*");
+        response.setHeader("Access-Control-Allow-Origin", "*"); // 允许所有域名访问
+        response.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS"); // 允许的方法
+        response.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization"); // 允许的请求头
         response.setHeader("Access-Control-Allow-Credentials", "true");
-        response.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE");
-        response.setHeader("Access-Control-Max-Age", "3600");
-        response.setHeader("Access-Control-Allow-Headers", "Authorization, Content-Type, Accept, X-Requested-With, remember-me");
-        response.setStatus(HttpServletResponse.SC_OK);
+//        String token = request.getHeader("Authorization");
+//        String jsonResponse = "{\"message\": \"Hello, World!\"}";
+
     }
 
     // 处理 POST 请求：借用物品
     // 处理 POST 请求：归还物品
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        response.setHeader("Access-Control-Allow-Origin", "*");
+        response.setHeader("Access-Control-Allow-Origin", "*"); // 允许所有域名访问
+        response.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS"); // 允许的方法
+        response.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization"); // 允许的请求头
         response.setHeader("Access-Control-Allow-Credentials", "true");
-        response.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE");
-        response.setHeader("Access-Control-Max-Age", "3600");
-        response.setHeader("Access-Control-Allow-Headers", "*");
-
         logger.info("Received POST request: record doPost");
         String token = request.getHeader("Authorization");
         String jsonResponse = "{\"message\": \"Hello, World!\"}";
@@ -88,10 +90,10 @@ public class RecordServlet extends HttpServlet {
                 try {
                     String path = request.getPathInfo();
                     /*
-                    *   API: Borrow item
-                    *   Author: Jkc
-                    *
-                    */
+                     *   API: Borrow item
+                     *   Author: Jkc
+                     *
+                     */
                     System.out.println("Path Info: " + path); // 打印路径信息
 
                     logger.info("Path Info: " + path);
@@ -122,6 +124,8 @@ public class RecordServlet extends HttpServlet {
                             return;
                         }
 
+
+
                         // 检查用户是否已经借用了该物品且未归还
                         if (recordDao.isItemBorrowed(userId, itemToBorrow.getId())) {
                             response.setStatus(HttpServletResponse.SC_CONFLICT);
@@ -134,7 +138,9 @@ public class RecordServlet extends HttpServlet {
                         UserBorrowRecord record = new UserBorrowRecord();
                         record.setUserId(userId);
                         record.setItemId(itemToBorrow.getId());
-                        record.setBorrowTime(Time.valueOf(LocalTime.now()));
+                        // 使用 Timestamp 获取当前日期和时间
+                        record.setBorrowTime(new Timestamp(System.currentTimeMillis()));
+
 
                         // 插入借用记录
                         recordDao.insertRecord(record);
@@ -147,7 +153,7 @@ public class RecordServlet extends HttpServlet {
                         jsonResponse = "{\"success\": true, \"message\": \"Item borrowed successfully\", \"item_id\": " + itemToBorrow.getId() + "}";
                         out.println(jsonResponse);
 
-                    
+
                         // out.println("{\"success\": true, \"message\": \"Item borrowed successfully\"}");
                     } else if ("/return".equals(path)) {
                         /*
@@ -226,16 +232,14 @@ public class RecordServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         response.setHeader("Access-Control-Allow-Origin", "*");
+        response.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+        response.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization"); // 允许的请求头
         response.setHeader("Access-Control-Allow-Credentials", "true");
-        response.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE");
-        response.setHeader("Access-Control-Max-Age", "3600");
-        response.setHeader("Access-Control-Allow-Headers", "*");
         response.setContentType("application/json");
         PrintWriter out = response.getWriter();
 
-        // 获取 Authorization 头中的 token
         String token = request.getHeader("Authorization");
-        
+
         if (token == null || !token.startsWith("Bearer ")) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             out.println("{\"error\": \"Missing or invalid Authorization header\"}");
@@ -254,10 +258,29 @@ public class RecordServlet extends HttpServlet {
 
             int userId = Integer.parseInt(userIdStr);
 
-            // 查询用户的借物记录
-            List<UserBorrowRecord> records = recordDao.getRecordsByUserId(userId);
+            // 查询用户的详细借物记录
+            List<Map<String, Object>> records = recordDao.getDetailedRecordsByUserId(userId);
+
+            JSONArray recordsArray = new JSONArray();
+            for (Map<String, Object> record : records) {
+                JSONObject recordJson = new JSONObject();
+                recordJson.put("record_id", record.get("record_id"));
+                recordJson.put("user_id", record.get("user_id"));
+                recordJson.put("item_id", record.get("item_id"));
+                recordJson.put("item_name", record.get("item_name"));
+                recordJson.put("item_type", record.get("item_type"));
+                recordJson.put("borrow_time", record.get("borrow_time"));
+                // 如果有 return_time，才返回
+                if (record.get("return_time") != null) {
+                    recordJson.put("return_time", record.get("return_time"));
+                }
+
+                recordsArray.put(recordJson);
+            }
+
             JSONObject jsonResponse = new JSONObject();
-            jsonResponse.put("records", records);
+            jsonResponse.put("records", recordsArray);
+
             out.println(jsonResponse.toString());
 
         } catch (SQLException e) {

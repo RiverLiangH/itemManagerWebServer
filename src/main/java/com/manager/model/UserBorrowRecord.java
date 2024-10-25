@@ -1,17 +1,18 @@
 package com.manager.model;
-import java.sql.Time;
+
+import java.sql.Timestamp;
 
 public class UserBorrowRecord {
     private int id;
     private int userId;
     private int itemId;
-    private Time borrowTime;
-    private Time returnTime;
+    private Timestamp borrowTime;  // 使用 Timestamp 替代 Time
+    private Timestamp returnTime;  // 使用 Timestamp 替代 Time
 
     // 构造函数
     public UserBorrowRecord() {}
 
-    public UserBorrowRecord(int id, int userId, int itemId, Time borrowTime, Time returnTime) {
+    public UserBorrowRecord(int id, int userId, int itemId, Timestamp borrowTime, Timestamp returnTime) {
         this.id = id;
         this.userId = userId;
         this.itemId = itemId;
@@ -44,19 +45,19 @@ public class UserBorrowRecord {
         this.itemId = itemId;
     }
 
-    public Time getBorrowTime() {
+    public Timestamp getBorrowTime() {
         return borrowTime;
     }
 
-    public void setBorrowTime(Time borrowTime) {
+    public void setBorrowTime(Timestamp borrowTime) {
         this.borrowTime = borrowTime;
     }
 
-    public Time getReturnTime() {
+    public Timestamp getReturnTime() {
         return returnTime;
     }
 
-    public void setReturnTime(Time returnTime) {
+    public void setReturnTime(Timestamp returnTime) {
         this.returnTime = returnTime;
     }
 }
