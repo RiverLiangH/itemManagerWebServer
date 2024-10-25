@@ -72,10 +72,6 @@ public class UserServlet extends HttpServlet {
                 }
                 logger.info("Received token: {}\n", token);
 
-                // 获取 session 中的验证令牌和用户数据
-//                HttpSession session = request.getSession();
-//                String sessionToken = (String) session.getAttribute("verificationToken");
-//                logger.info("Session token: {}\n", sessionToken);
                 if (TokenManager.isTokenValid(email, token)) {
                     // 验证通过，获取用户数据
                     Map<String, Object> userData = TokenManager.getUserData(email);
@@ -213,16 +209,6 @@ public class UserServlet extends HttpServlet {
                 // 将用户信息和 token 保存到文件
                 TokenManager.saveUserData(email, name, phone, hashedPassword, admin, verificationToken, expiryTime);
 
-//                String verificationToken = UUID.randomUUID().toString();
-//
-//                // 将用户信息和验证令牌存入 session
-//                HttpSession session = request.getSession();
-//                session.setAttribute("username", name);
-//                session.setAttribute("phone", phone);
-//                session.setAttribute("email", email);
-//                session.setAttribute("password", hashedPassword);
-//                session.setAttribute("admin", admin);
-//                session.setAttribute("verificationToken", verificationToken);
                 // 发送验证邮件
                 String encodedEmail = URLEncoder.encode(email, "UTF-8");
                 String verificationLink = "http://119.91.235.144:8080/item_manager_backend/api/users/verify?email=" + encodedEmail + "&token=" + verificationToken;
@@ -236,20 +222,6 @@ public class UserServlet extends HttpServlet {
                 jsonResponse.put("message", "Registration information has been submitted. Please check your email for verification.");
                 response.setStatus(HttpServletResponse.SC_CREATED);
                 out.println(jsonResponse);
-
-
-                // 创建用户对象并插入数据库（ID 由数据库自动生成）
-                // User user = new User(0, name, phone, email, hashedPassword, admin);
-                // userDao.insertUser(user);
-                // 获取生成的自增 ID
-                // logger.info("User created successfully: {}", name);
-
-                // 返回创建成功的用户信息以及生成的 user_id
-//                JSONObject jsonResponse = new JSONObject();
-//                jsonResponse.put("success", true);
-//                jsonResponse.put("message", "User created successfully");
-//                response.setStatus(HttpServletResponse.SC_CREATED);
-//                out.println(jsonResponse.toString());
             } else if ("/login".equals(path)) {
                 String requestBody = sb.toString();
                 JSONObject jsonObject = new JSONObject(requestBody);
