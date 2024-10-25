@@ -17,6 +17,8 @@ import org.json.JSONArray;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @WebServlet("/api/items/*")
 public class ItemServlet extends HttpServlet {
@@ -70,8 +72,8 @@ public class ItemServlet extends HttpServlet {
         response.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS"); // 允许的方法
         response.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization"); // 允许的请求头
         response.setHeader("Access-Control-Allow-Credentials", "true");
-        String token = request.getHeader("Authorization");
-        String jsonResponse = "{\"message\": \"Hello, World!\"}";
+//        String token = request.getHeader("Authorization");
+//        String jsonResponse = "{\"message\": \"Hello, World!\"}";
 
     }
 
@@ -168,7 +170,7 @@ public class ItemServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         resp.setHeader("Access-Control-Allow-Origin", "*"); // 允许所有域名访问
         resp.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS"); // 允许的方法
-        resp.setHeader("Access-Control-Allow-Headers", "Content-Type"); // 允许的请求头
+        resp.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization"); // 允许的请求头
         resp.setHeader("Access-Control-Allow-Credentials", "true");
         System.out.println("Received GET request");
 
