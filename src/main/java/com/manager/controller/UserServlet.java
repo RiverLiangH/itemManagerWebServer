@@ -3,18 +3,21 @@ package com.manager.controller;
 import com.manager.dao.UserDao;
 import com.manager.model.User;
 
+import java.net.URLEncoder;
 import java.sql.Connection;
 import java.sql.SQLException;  // 导入 SQLException
 
 import com.manager.utility.EmailUtil;
 import com.manager.utility.JwtUtil;
 import com.manager.utility.PasswordUtil;
+import com.manager.utility.TokenManager;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Map;
 import java.util.UUID;
 
 import org.json.JSONObject;
@@ -59,20 +62,27 @@ public class UserServlet extends HttpServlet {
                 // 获取所有用户
                 out.println(userDao.getAllUsers());
             } else if ("/verify".equals(pathInfo)){
+                String email = request.getParameter("email");
                 String token = request.getParameter("token");
+
+                if (email == null || token == null) {
+                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    response.getWriter().write("Email or token missing in the request.");
+                    return;
+                }
                 logger.info("Received token: {}\n", token);
 
                 // 获取 session 中的验证令牌和用户数据
-                HttpSession session = request.getSession();
-                String sessionToken = (String) session.getAttribute("verificationToken");
-                logger.info("Session token: {}\n", sessionToken);
-                if (token != null && token.equals(sessionToken)) {
+//                HttpSession session = request.getSession();
+//                String sessionToken = (String) session.getAttribute("verificationToken");
+//                logger.info("Session token: {}\n", sessionToken);
+                if (TokenManager.isTokenValid(email, token)) {
                     // 验证通过，获取用户数据
-                    String name = (String) session.getAttribute("username");
-                    String phone = (String) session.getAttribute("phone");
-                    String email = (String) session.getAttribute("email");
-                    String password = (String) session.getAttribute("password");
-                    boolean admin = (boolean) session.getAttribute("admin");
+                    Map<String, Object> userData = TokenManager.getUserData(email);
+                    String name = (String) userData.get("name");
+                    String phone = (String) userData.get("phone");
+                    String password = (String) userData.get("password");
+                    boolean admin = (Boolean) userData.get("admin");
 
                     // 将用户数据写入数据库
                     User user = new User(0, name, phone, email, password, admin);
@@ -80,6 +90,7 @@ public class UserServlet extends HttpServlet {
                     // response.getWriter().write("Email verification successful, registration complete!");
 
                     logger.info("User created successfully: {}", name);
+                    TokenManager.removeUser(email);  // 验证成功后删除用户数据
 
                     // 返回创建成功的用户信息以及生成的 user_id
                     JSONObject jsonResponse = new JSONObject();
@@ -195,18 +206,27 @@ public class UserServlet extends HttpServlet {
                 String hashedPassword = hashPassword(password);
 
                 // 生成唯一的邮箱验证令牌
+                // 生成 token 和设置过期时间
                 String verificationToken = UUID.randomUUID().toString();
+                long expiryTime = System.currentTimeMillis() + (24 * 60 * 60 * 1000); // 24小时后过期
 
-                // 将用户信息和验证令牌存入 session
-                HttpSession session = request.getSession();
-                session.setAttribute("username", name);
-                session.setAttribute("phone", phone);
-                session.setAttribute("email", email);
-                session.setAttribute("password", hashedPassword);
-                session.setAttribute("admin", admin);
-                session.setAttribute("verificationToken", verificationToken);
+                // 将用户信息和 token 保存到文件
+                TokenManager.saveUserData(email, name, phone, hashedPassword, admin, verificationToken, expiryTime);
+
+//                String verificationToken = UUID.randomUUID().toString();
+//
+//                // 将用户信息和验证令牌存入 session
+//                HttpSession session = request.getSession();
+//                session.setAttribute("username", name);
+//                session.setAttribute("phone", phone);
+//                session.setAttribute("email", email);
+//                session.setAttribute("password", hashedPassword);
+//                session.setAttribute("admin", admin);
+//                session.setAttribute("verificationToken", verificationToken);
                 // 发送验证邮件
-                String verificationLink = "http://119.91.235.144:8080/item_manager_backend/api/users/verify?token=" + verificationToken;
+                String encodedEmail = URLEncoder.encode(email, "UTF-8");
+                String verificationLink = "http://119.91.235.144:8080/item_manager_backend/api/users/verify?email=" + encodedEmail + "&token=" + verificationToken;
+                // String verificationLink = "http://localhost:8080/item_manager_backend/api/users/verify?email=" + encodedEmail + "&token=" + verificationToken;
                 logger.info("Generated token: {}", verificationToken);
 
                 EmailUtil.sendVerificationEmail(email, verificationLink);
