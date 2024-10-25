@@ -42,14 +42,25 @@ public class RecordServlet extends HttpServlet {
         itemDao = new ItemDao();  // 初始化 ItemDao
     }
 
+    protected void doOptions(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        response.setHeader("Access-Control-Allow-Origin", "*");
+        response.setHeader("Access-Control-Allow-Credentials", "true");
+        response.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE");
+        response.setHeader("Access-Control-Max-Age", "3600");
+        response.setHeader("Access-Control-Allow-Headers", "Authorization, Content-Type, Accept, X-Requested-With, remember-me");
+        response.setStatus(HttpServletResponse.SC_OK);
+    }
+
     // 处理 POST 请求：借用物品
     // 处理 POST 请求：归还物品
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        response.setHeader("Access-Control-Allow-Origin", "*"); // 允许所有域名访问
-        response.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS"); // 允许的方法
-        response.setHeader("Access-Control-Allow-Headers", "Content-Type"); // 允许的请求头
+        response.setHeader("Access-Control-Allow-Origin", "*");
         response.setHeader("Access-Control-Allow-Credentials", "true");
+        response.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE");
+        response.setHeader("Access-Control-Max-Age", "3600");
+        response.setHeader("Access-Control-Allow-Headers", "*");
+
         logger.info("Received POST request: record doPost");
         String token = request.getHeader("Authorization");
         String jsonResponse = "{\"message\": \"Hello, World!\"}";
@@ -110,8 +121,6 @@ public class RecordServlet extends HttpServlet {
                             out.println(jsonResponse);
                             return;
                         }
-
-
 
                         // 检查用户是否已经借用了该物品且未归还
                         if (recordDao.isItemBorrowed(userId, itemToBorrow.getId())) {
@@ -216,10 +225,11 @@ public class RecordServlet extends HttpServlet {
     // 处理 GET 请求：查询用户的所有借物记录
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        response.setHeader("Access-Control-Allow-Origin", "*"); // 允许所有域名访问
-        response.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS"); // 允许的方法
-        response.setHeader("Access-Control-Allow-Headers", "Content-Type"); // 允许的请求头
+        response.setHeader("Access-Control-Allow-Origin", "*");
         response.setHeader("Access-Control-Allow-Credentials", "true");
+        response.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE");
+        response.setHeader("Access-Control-Max-Age", "3600");
+        response.setHeader("Access-Control-Allow-Headers", "*");
         response.setContentType("application/json");
         PrintWriter out = response.getWriter();
 

@@ -28,6 +28,15 @@ public class ItemServlet extends HttpServlet {
         itemDao = new ItemDao(); // Make sure to init itemDao HERE
     }
 
+    protected void doOptions(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        response.setHeader("Access-Control-Allow-Origin", "*");
+        response.setHeader("Access-Control-Allow-Credentials", "true");
+        response.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE");
+        response.setHeader("Access-Control-Max-Age", "3600");
+        response.setHeader("Access-Control-Allow-Headers", "Authorization, Content-Type, Accept, X-Requested-With, remember-me");
+        response.setStatus(HttpServletResponse.SC_OK);
+    }
+
     // 统一的管理员权限验证方法
     private boolean verifyAdmin(HttpServletRequest req, HttpServletResponse resp) throws IOException, SQLException {
         // 获取 Authorization 头中的 token
@@ -67,10 +76,11 @@ public class ItemServlet extends HttpServlet {
     // 处理 POST 请求：删除物品
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        resp.setHeader("Access-Control-Allow-Origin", "*"); // 允许所有域名访问
-        resp.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS"); // 允许的方法
-        resp.setHeader("Access-Control-Allow-Headers", "Content-Type"); // 允许的请求头
+        resp.setHeader("Access-Control-Allow-Origin", "*");
         resp.setHeader("Access-Control-Allow-Credentials", "true");
+        resp.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE");
+        resp.setHeader("Access-Control-Max-Age", "3600");
+        resp.setHeader("Access-Control-Allow-Headers", "*");
         System.out.println("Received POST request");
 
         try {
@@ -129,9 +139,9 @@ public class ItemServlet extends HttpServlet {
                 System.out.println("Received JSON: " + jsonInput.toString());
 
                 JSONObject jsonObject = new JSONObject(jsonInput.toString());
-                String itemName = jsonObject.getString("name"); // 获取要删除的 item_name
+                int itemId = jsonObject.getInt("id"); // 获取要删除的 item_id
 
-                itemDao.deleteRandomItemByItemName(itemName);
+                itemDao.deleteItem(itemId);
 
                 // 设置成功响应消息
                 jsonResponse = "{\"message\": \"Item deleted successfully\"}";
@@ -153,10 +163,12 @@ public class ItemServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        resp.setHeader("Access-Control-Allow-Origin", "*"); // 允许所有域名访问
-        resp.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS"); // 允许的方法
-        resp.setHeader("Access-Control-Allow-Headers", "Content-Type"); // 允许的请求头
+        resp.setHeader("Access-Control-Allow-Origin", "*");
         resp.setHeader("Access-Control-Allow-Credentials", "true");
+        resp.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE");
+        resp.setHeader("Access-Control-Max-Age", "3600");
+        resp.setHeader("Access-Control-Allow-Headers", "*");
+
         System.out.println("Received GET request");
 
         try {

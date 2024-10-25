@@ -28,14 +28,24 @@ public class UserServlet extends HttpServlet {
     private static final Logger logger = LoggerFactory.getLogger(UserServlet.class);
     private UserDao userDao = new UserDao();
 
+    protected void doOptions(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        response.setHeader("Access-Control-Allow-Origin", "*");
+        response.setHeader("Access-Control-Allow-Credentials", "true");
+        response.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE");
+        response.setHeader("Access-Control-Max-Age", "3600");
+        response.setHeader("Access-Control-Allow-Headers", "Authorization, Content-Type, Accept, X-Requested-With, remember-me");
+        response.setStatus(HttpServletResponse.SC_OK);
+    }
+
     // 处理 GET 请求：根据ID或名称查询用户
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         // 设置CORS头
-        response.setHeader("Access-Control-Allow-Origin", "*"); // 允许所有域名访问
-        response.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS"); // 允许的方法
-        response.setHeader("Access-Control-Allow-Headers", "Content-Type"); // 允许的请求头
+        response.setHeader("Access-Control-Allow-Origin", "*");
         response.setHeader("Access-Control-Allow-Credentials", "true");
+        response.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE");
+        response.setHeader("Access-Control-Max-Age", "3600");
+        response.setHeader("Access-Control-Allow-Headers", "*");
 
         String pathInfo = request.getPathInfo();
         response.setContentType("application/json");
@@ -77,8 +87,9 @@ public class UserServlet extends HttpServlet {
                     out.println(jsonResponse);
 
                 } else {
-                    // 验证失败
-                    response.getWriter().write("Invalid verification link.");
+                    // 验证失败，返回 401
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    response.getWriter().write("Unauthorized");
                 }
             } else {
                 String[] pathParts = pathInfo.split("/");
@@ -134,10 +145,11 @@ public class UserServlet extends HttpServlet {
     // 处理 POST 请求：创建新用户
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        response.setHeader("Access-Control-Allow-Origin", "*"); // 允许所有域名访问
-        response.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS"); // 允许的方法
-        response.setHeader("Access-Control-Allow-Headers", "Content-Type"); // 允许的请求头
+        response.setHeader("Access-Control-Allow-Origin", "*");
         response.setHeader("Access-Control-Allow-Credentials", "true");
+        response.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE");
+        response.setHeader("Access-Control-Max-Age", "3600");
+        response.setHeader("Access-Control-Allow-Headers", "*");
 
         System.out.println("Received POST request");
         response.setContentType("application/json");
