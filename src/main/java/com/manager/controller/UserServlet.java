@@ -27,6 +27,19 @@ import static com.manager.utility.PasswordUtil.hashPassword;
 public class UserServlet extends HttpServlet {
     private static final Logger logger = LoggerFactory.getLogger(UserServlet.class);
     private UserDao userDao = new UserDao();
+ 
+    // 处理 Options 请求
+    // 跨域问题
+    protected void doOptions(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        response.setHeader("Access-Control-Allow-Origin", "*"); // 允许所有域名访问
+        response.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS"); // 允许的方法
+        response.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization"); // 允许的请求头
+        response.setHeader("Access-Control-Allow-Credentials", "true");
+        logger.info("Received POST request: record doPost");
+        String token = request.getHeader("Authorization");
+        String jsonResponse = "{\"message\": \"Hello, World!\"}";
+
+    }
 
     // 处理 GET 请求：根据ID或名称查询用户
     @Override
@@ -34,7 +47,7 @@ public class UserServlet extends HttpServlet {
         // 设置CORS头
         response.setHeader("Access-Control-Allow-Origin", "*"); // 允许所有域名访问
         response.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS"); // 允许的方法
-        response.setHeader("Access-Control-Allow-Headers", "Content-Type"); // 允许的请求头
+        response.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization"); // 允许的请求头
         response.setHeader("Access-Control-Allow-Credentials", "true");
 
         String pathInfo = request.getPathInfo();
