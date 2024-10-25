@@ -43,13 +43,26 @@ public class RecordServlet extends HttpServlet {
         itemDao = new ItemDao();  // 初始化 ItemDao
     }
 
+    // 处理 Options 请求
+    // 跨域问题
+    protected void doOptions(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        response.setHeader("Access-Control-Allow-Origin", "*"); // 允许所有域名访问
+        response.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS"); // 允许的方法
+        response.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization"); // 允许的请求头
+        response.setHeader("Access-Control-Allow-Credentials", "true");
+        logger.info("Received POST request: record doPost");
+        String token = request.getHeader("Authorization");
+        String jsonResponse = "{\"message\": \"Hello, World!\"}";
+
+    }
+
     // 处理 POST 请求：借用物品
     // 处理 POST 请求：归还物品
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         response.setHeader("Access-Control-Allow-Origin", "*"); // 允许所有域名访问
         response.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS"); // 允许的方法
-        response.setHeader("Access-Control-Allow-Headers", "Content-Type"); // 允许的请求头
+        response.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization"); // 允许的请求头
         response.setHeader("Access-Control-Allow-Credentials", "true");
         logger.info("Received POST request: record doPost");
         String token = request.getHeader("Authorization");
