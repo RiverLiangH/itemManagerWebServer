@@ -27,7 +27,7 @@ public class ItemServlet extends HttpServlet {
         super.init();
         itemDao = new ItemDao(); // Make sure to init itemDao HERE
     }
-
+    
     // 统一的管理员权限验证方法
     private boolean verifyAdmin(HttpServletRequest req, HttpServletResponse resp) throws IOException, SQLException {
         // 获取 Authorization 头中的 token
@@ -63,13 +63,27 @@ public class ItemServlet extends HttpServlet {
         return true;
     }
 
+    // 处理 Options 请求
+    // 跨域问题
+    protected void doOptions(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        response.setHeader("Access-Control-Allow-Origin", "*"); // 允许所有域名访问
+        response.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS"); // 允许的方法
+        response.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization"); // 允许的请求头
+        response.setHeader("Access-Control-Allow-Credentials", "true");
+        logger.info("Received POST request: record doPost");
+        String token = request.getHeader("Authorization");
+        String jsonResponse = "{\"message\": \"Hello, World!\"}";
+
+    }
+
+
     // 处理 POST 请求：增加物品
     // 处理 POST 请求：删除物品
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         resp.setHeader("Access-Control-Allow-Origin", "*"); // 允许所有域名访问
         resp.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS"); // 允许的方法
-        resp.setHeader("Access-Control-Allow-Headers", "Content-Type"); // 允许的请求头
+        resp.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization"); // 允许的请求头
         resp.setHeader("Access-Control-Allow-Credentials", "true");
         System.out.println("Received POST request");
 
